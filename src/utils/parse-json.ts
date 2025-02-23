@@ -16,10 +16,8 @@ export const findThreeJSJSON = (data: any): any | null => {
         data.materials &&
         Array.isArray(data.materials)
       ) {
-        // We've found the Three.js JSON object
         return data;
       } else {
-        // Traverse the object recursively to search for the JSON object
         for (const key in data) {
           const result: any = findThreeJSJSON(data[key]);
           if (result) {
@@ -28,7 +26,6 @@ export const findThreeJSJSON = (data: any): any | null => {
         }
       }
     }
-    // The JSON object was not found in this object or any of its children
     return null;
   } catch (e) {
     console.error("We could not find JSON Object data");
@@ -76,22 +73,26 @@ const parseJSON = async (childrenJSON: any): Promise<THREE.Object3D> => {
     try {
       const loader = new THREE.ObjectLoader();
 
-      // Check if the provided JSON data is an object and has required properties
-      if (
-        !childrenJSON ||
-        typeof childrenJSON !== "object" ||
-        !childrenJSON.object
-      ) {
+      if (!childrenJSON || typeof childrenJSON !== "object" || !childrenJSON.object) {
         throw new Error("#12362; Invalid JSON data");
       }
 
-      // Remove null values from JSON data
+      if (childrenJSON.object?.name === "PrettyCeiling") {
+        childrenJSON.object.name = "Конструкция";
+      }
+
+      const replaceUnderscores = (obj: any) => {
+        if (obj.name) {
+          obj.name = obj.name.replace(/_/g, ' ');
+        }
+        if (obj.children) {
+          obj.children.forEach(replaceUnderscores);
+        }
+      };
+      replaceUnderscores(childrenJSON.object);
+
       const cleanedJSON = removeNullValues(childrenJSON);
-
-      // Remove the "__typename" properties from the JSON data
       removeTypename(cleanedJSON);
-
-      // Parse the JSON data into Three.js objects
       let parsed = loader.parse(cleanedJSON);
 
       resolve(parsed);

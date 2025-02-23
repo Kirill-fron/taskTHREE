@@ -1,4 +1,4 @@
-import { useViewer, useBehaviorSubject } from "../../hooks";
+import { useViewer, useBehaviorSubject } from "../hooks";
 import React, { useEffect, useState } from "react";
 import * as THREE from "three";
 
@@ -13,6 +13,14 @@ const ObjHierarchy: React.FC = () => {
     const [hierarchy, setHierarchy] = useState<ObjHierarchyProps | null>(null);
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [expandedNodes, setExpandedNodes] = useState<Set<number>>(new Set());
+    const [selectedStatus, setSelectedStatus] = useState<number | null>(null);
+
+    const statusButtons = [
+        { code: 1, text: "В планах", color: "#ff4444" },
+        { code: 2, text: "В процессе", color: "#ffaa00" },
+        { code: 3, text: "Частичная установка", color: "#ffff00" },
+        { code: 4, text: "Установлено", color: "#00ff00" },
+    ];
 
     useEffect(() => {
         if (viewer.model && status === 'idle') {
@@ -46,7 +54,7 @@ const ObjHierarchy: React.FC = () => {
 
     const getStatusColor = (object: THREE.Object3D) => {
         const status = object.userData?.propertyValue?.statusCode;
-        switch(status) {
+        switch (status) {
             case 1: return "#ff4444";
             case 2: return "#ffaa00";
             case 3: return "#ffff00";
@@ -76,7 +84,7 @@ const ObjHierarchy: React.FC = () => {
                     }}
                 >
                     {hasChildren && (
-                        <button 
+                        <button
                             onClick={(e) => toggleNode(node.object.id, e)}
                             style={{
                                 background: "none",
@@ -95,7 +103,7 @@ const ObjHierarchy: React.FC = () => {
                             ▼
                         </button>
                     )}
-                    
+
                     <div style={{
                         width: "8px",
                         height: "8px",
@@ -103,22 +111,14 @@ const ObjHierarchy: React.FC = () => {
                         backgroundColor: getStatusColor(node.object),
                         marginRight: "8px"
                     }} />
-                    
+
                     <span style={{ flexGrow: 1 }}>
-                        {node.object.name || `Object_${node.object.id}`}
+                        {node.object.name || `Деталь здания ${node.object.id}`}
                     </span>
-                    
-                    {node.object.userData?.propertyValue && (
-                        <span style={{
-                            marginLeft: "auto",
-                            fontSize: "0.8em",
-                            opacity: 0.7
-                        }}>
-                            {node.object.userData.propertyValue.statusText}
-                        </span>
-                    )}
+
+
                 </div>
-                
+
                 {hasChildren && isExpanded && (
                     <div style={{ marginTop: "2px" }}>
                         {node.children.map((child) => renderNode(child, level + 1))}
@@ -127,6 +127,27 @@ const ObjHierarchy: React.FC = () => {
             </div>
         )
     }
+
+    const highlightByStatus = (statusCode: number) => {
+        if (selectedStatus === statusCode) {
+            setSelectedStatus(null);
+            viewer.clearHighlight();
+            return;
+        }
+
+        setSelectedStatus(statusCode);
+        if (viewer.model) {
+            const objectsWithStatus: THREE.Object3D[] = [];
+            viewer.model.traverse((child) => {
+                if (child instanceof THREE.Mesh &&
+                    child.userData?.propertyValue?.statusCode === statusCode) {
+                    objectsWithStatus.push(child);
+                }
+            });
+
+            viewer.highlightObjects(objectsWithStatus);
+        }
+    };
 
     if (!hierarchy || status === 'loading' || status === 'error') {
         return null;
@@ -143,10 +164,49 @@ const ObjHierarchy: React.FC = () => {
             color: "white",
             maxHeight: "80vh",
             overflowY: "auto",
-            minWidth: "300px",
+            minWidth: "400px",
             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)"
         }}>
-            <h3 style={{ margin: '0 0 16px 0' }}>Object Hierarchy</h3>
+            <h3 style={{ margin: '0 0 16px 0' }}>Конструкция здания</h3>
+
+            <div style={{
+                display: 'flex',
+                gap: '8px',
+                marginBottom: '16px',
+                flexWrap: 'wrap'
+            }}>
+                {statusButtons.map(status => (
+                    <button
+                        key={status.code}
+                        onClick={() => highlightByStatus(status.code)}
+                        style={{
+                            backgroundColor: selectedStatus === status.code
+                                ? status.color
+                                : 'transparent',
+                            border: `1px solid ${status.color}`,
+                            color: selectedStatus === status.code
+                                ? '#000'
+                                : status.color,
+                            padding: '8px 12px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                        }}
+                    >
+                        <div style={{
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
+                            backgroundColor: status.color
+                        }} />
+                        {status.text}
+                    </button>
+                ))}
+            </div>
+
             {renderNode(hierarchy)}
         </div>
     )
