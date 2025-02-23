@@ -10,6 +10,50 @@ CameraControls.install({ THREE });
 export type ViewerStatus = "loading" | "error" | "idle";
 
 class Viewer {
+
+  private _highlightedMesh: THREE.Mesh | null = null;
+  private _originalMaterials = new Map<THREE.Mesh, THREE.Material>()
+
+  public highlightObject(object: THREE.Object3D) {
+
+    this.clearHighlight();
+
+
+    object.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        this._originalMaterials.set(child, child.material);
+
+
+        const highlightMaterial = new THREE.MeshStandardMaterial({
+          color: 0x00ff00,
+          emissive: 0x00ff00,
+          emissiveIntensity: 0.5,
+          transparent: true,
+          opacity: 0.5,
+        })
+
+        child.material = highlightMaterial;
+        this._highlightedMesh = child;
+      }
+    })
+
+    this._renderNeeded = true;
+    this.updateViewer();
+  }
+
+
+  public clearHighlight() {
+    if (this._highlightedMesh) {
+      this._originalMaterials.forEach((material, mesh) => {
+        mesh.material = material;
+      })
+      this._highlightedMesh = null
+      this._originalMaterials.clear();
+      this._renderNeeded = true;
+      this.updateViewer()
+    }
+  }
+
   public id: string;
   public scene: THREE.Scene;
   public camera: THREE.PerspectiveCamera;

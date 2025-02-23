@@ -2,3 +2,60 @@
   margin: 0px;
   text-align: center;
 }
+
+
+.hierarchy-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 16px;
+  border-radius: 8px;
+  color: white;
+  max-height: 80vh;
+  overflow-y: auto;
+  min-width: 300px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.hierarchy-title {
+  margin: 0 0 16px 0;
+}
+
+.hierarchy-node {
+  display: flex;
+  padding: 4px;
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.05);
+  margin-bottom: 2px;
+  border-radius: 4px;
+  align-items: center;
+  transition: background-color 0.2s;
+  border: 1px solid transparent;
+}
+
+.hierarchy-node.selected {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.node-name {
+  flex-grow: 1;
+}
+
+.status-text {
+  margin-left: auto;
+  font-size: 0.8em;
+  opacity: 0.7;
+}
+
+.node-children {
+  margin-left: 20px;
+}

@@ -2,7 +2,6 @@ import "./App.css";
 import Loading from "./components/loading";
 import ViewerComponent from "./components/viewer-component";
 import ObjHierarchy from "./components/obj-hierarchy/ObjHierarchy";
-
 function App() {
   return (
     <>
